@@ -92,8 +92,8 @@ yarn lint
 ```
 
 # env
-JWT_SECRET=your_jwt_secret
-REFRESH_SECRET=your_refresh_secret
-NEXT_PUBLIC_API_URL=http://localhost:3000/api
+- JWT_SECRET=your_jwt_secret
+- REFRESH_SECRET=your_refresh_secret
+- NEXT_PUBLIC_API_URL=http://localhost:3000/api
 
 

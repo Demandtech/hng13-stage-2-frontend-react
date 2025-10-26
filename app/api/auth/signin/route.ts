@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const user = users.find((u: any) => u.email === email);
 
   if (!user)
-    return NextResponse.json({ message: "User not found" }, { status: 404 });
+    return NextResponse.json({ message: "Invalid credentials" }, { status: 400 });
 
 
 

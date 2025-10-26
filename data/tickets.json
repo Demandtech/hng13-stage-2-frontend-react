@@ -1,0 +1,11 @@
+[
+  {
+    "id": "1761452665010",
+    "title": "First Ticket",
+    "description": "First ticket description need to make sense or else it is going to throw an error",
+    "userId": "1761444440810",
+    "createdAt": "2025-10-26T04:24:25.010Z",
+    "status": "in_progress",
+    "priority": "high"
+  }
+]

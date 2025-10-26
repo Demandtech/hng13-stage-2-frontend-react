@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { readJSON } from "@/lib/storage";
+import { supabase } from "@/lib/supabaseClient";
 
 const SECRET = process.env.JWT_SECRET || "secretkey";
 
@@ -18,23 +18,27 @@ export async function GET(req: Request) {
     const token = auth.split(" ")[1];
     const decoded = jwt.verify(token, SECRET) as { id: string; email: string };
 
-    const users = readJSON("users.json");
-    const user = users.find((u: any) => u.id === decoded.id);
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", decoded.id)
+      .single();
 
-    if (!user) {
+    if (error || !user) {
       return NextResponse.json(
         { message: "User not found" },
         { status: 404, statusText: "Not Found" }
       );
     }
 
-    const { password: _, ...safeUser } = user;
+    const { password: _, ...safeUser } = user || {};
 
     return NextResponse.json(
       { message: "Authenticated user fetched", user: safeUser },
       { status: 200, statusText: "Success" }
     );
   } catch (error) {
+    console.error("Auth error:", error);
     return NextResponse.json(
       { message: "Invalid or expired token" },
       { status: 401, statusText: "Unauthorized" }

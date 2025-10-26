@@ -1,20 +1,26 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { readJSON, writeJSON } from "@/lib/storage";
+import { supabase } from "@/lib/supabaseClient";
 
 const ACCESS_SECRET = process.env.JWT_SECRET || "secretkey";
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "refresh_secret";
 
 export async function POST(req: Request) {
   const { email, password } = await req.json();
-  const users = readJSON("users.json");
-  const user = users.find((u: any) => u.email === email);
 
-  if (!user)
-    return NextResponse.json({ message: "Invalid credentials" }, { status: 400 });
+  const { data: user, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .single();
 
-
+  if (error || !user) {
+    return NextResponse.json(
+      { message: "Invalid credentials" },
+      { status: 400 }
+    );
+  }
 
   const match = await bcrypt.compare(password, user.password);
   if (!match)
@@ -22,7 +28,6 @@ export async function POST(req: Request) {
       { message: "Invalid credentials" },
       { status: 400 }
     );
-
 
   const accessToken = jwt.sign(
     { id: user.id, email: user.email },
@@ -35,8 +40,14 @@ export async function POST(req: Request) {
     expiresIn: "7d",
   });
 
-  user.refreshToken = refreshToken;
-  writeJSON("users.json", users);
+  const { error: updateError } = await supabase
+    .from("users")
+    .update({ refresh_token: refreshToken })
+    .eq("id", user.id);
+
+  if (updateError) {
+    console.error("Failed to store refresh token:", updateError);
+  }
 
   const res = NextResponse.json({
     message: "Signin successful",

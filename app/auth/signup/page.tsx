@@ -45,7 +45,7 @@ const Signup = () => {
           opacity={0.08}
         />
 
-        <Card className="w-full max-w-md shadow-xl border-2 relative z-10 border-border">
+        <Card className="w-full max-w-md shadow-xl border-2 relative z-10 border-border py-10">
           <CardHeader className="text-center space-y-2 flex-col">
             <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-r from-primary to-blue-600 flex items-center justify-center mb-4 shadow-glow">
               <Ticket className="w-8 h-8 text-primary-foreground" />

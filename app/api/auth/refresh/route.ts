@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { readJSON, writeJSON } from "@/lib/storage";
+import { supabase } from "@/lib/supabaseClient";
 
 const ACCESS_SECRET = process.env.JWT_SECRET || "secretkey";
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "refresh_secret";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { refresh_token } = body;
+    const { refresh_token } = await req.json();
 
     if (!refresh_token) {
       return NextResponse.json(
@@ -19,10 +18,13 @@ export async function POST(req: Request) {
 
     const decoded = jwt.verify(refresh_token, REFRESH_SECRET) as { id: string };
 
-    const users = readJSON("users.json");
-    const user = users.find((u: any) => u.id === decoded.id);
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", decoded.id)
+      .single();
 
-    if (!user || user.refreshToken !== refresh_token) {
+    if (error || !user || user.refresh_token !== refresh_token) {
       return NextResponse.json(
         { message: "Invalid refresh token" },
         { status: 403, statusText: "Forbidden" }
@@ -40,7 +42,15 @@ export async function POST(req: Request) {
     });
 
     user.refreshToken = newRefreshToken;
-    writeJSON("users.json", users);
+
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ refresh_token: newRefreshToken })
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Failed to store refresh token:", updateError);
+    }
 
     const res = NextResponse.json({
       message: "Token refreshed",
